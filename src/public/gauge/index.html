@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8">
+  <title>Industrial Networks</title>
+  <link rel="stylesheet" href="./style.css">
+
+</head>
+<body>
+<div class="container">
+  <div>
+    <div>
+      <h1 class="sys1">System 1</h1>
+    </div>
+  </div>
+  <div>
+    <div>
+      <h1 class="sys2">System 2</h1>
+    </div>
+  </div>
+</div>
+<div class="container">
+<!--SYSTEM1-->
+  <div>
+    <div>
+      <!-- GAUGE CURRENT -->
+      <div>
+        <div id="gaugeC1" class="gauge-container current">
+          <span class="label">Current</span>
+          <span class="value-text">mA</span>
+        </div>
+      </div>
+      <!-- VOLTAGE -->
+      <div>
+        <span id="Vol1" class="voltage">
+          5.0
+        </span>
+        <span class="units">
+          Volts
+        </span>
+      </div>
+      <!-- GAUGE POWER -->
+      <div>
+        <div id="gaugeP1" class="gauge-container power">
+          <span class="label">Power</span>
+          <span class="units">mWatts</span>
+        </div>
+      </div>
+      <!-- LED INDICATOR -->
+      <div>
+        <svg height="30" width="30">
+          <circle cx="15" cy="15" r="14"/>
+        </svg>
+      </div>
+      <!-- BUTTON -->
+      <div>
+        <button>ON/OFF</button>
+      </div>
+    </div>
+  </div>
+
+<!--SYSTEM2-->
+  <div>
+    <div>
+      <!-- GAUGE CURRENT-->
+      <div>
+        <div id="gaugeC2" class="gauge-container current">
+          <span class="label">Current</span>
+          <span class="value-text">mA</span>
+        </div>
+      </div>
+      <!-- VOLTAGE -->
+      <div>
+        <span id="Vol2" class="voltage">
+          5.0
+        </span>
+        <span class="units">
+          Volts
+        </span>
+      </div>
+      <!-- GAUGE POWER -->
+      <div>
+        <div id="gaugeP2" class="gauge-container power">
+          <span class="label">Power</span>
+          <span class="units">mWatts</span>
+        </div>
+      </div>
+      <!-- LED INDICATOR -->
+      <div>
+        <svg height="30" width="30">
+          <circle cx="15" cy="15" r="14"/>
+        </svg>
+      </div>
+      <!-- BUTTON -->
+      <div>
+        <button>ON/OFF</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <canvas id="myChart" width="100%" height="30px"></canvas>
+</div>
+
+<script src='https://rawgit.com/naikus/svg-gauge/master/dist/gauge.min.js'></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/chart.js@2.8.0"></script>
+<script src="./script.js"></script>
+
+</body>
+</html>
