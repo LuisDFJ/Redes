@@ -3,10 +3,12 @@ const path = require('path');
 const bodyParser = require('body-parser');
 const SerialPort = require('serialport');
 const Readline = require('@serialport/parser-readline');
+const { parse } = require('path');
+const { json } = require('body-parser');
 const sPort = new SerialPort('/dev/ttyACM1');
 
 const app = express();
-const port = 3333;
+const port = 3030;
 
 
 var LED1 = 1;
@@ -20,6 +22,11 @@ var V1 = 0;
 var V2 = 0;
 var PD1 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
 var PD2 = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0];
+var Commands = ['{"typ":"c","data":0.00}',
+                '{"typ":"C","data":0.00}',
+                '{"typ":"V","data":0.00}',
+                '{"typ":"v","data":0.00}'];
+var CommandsJSON;
 
 const parser = sPort.pipe(new Readline({ delimiter: '\r\n'}));
 
@@ -45,16 +52,29 @@ app.post("/output", (req,res) => {
 });
 
 app.post("/input", (req,res) => {
-    sPort.write("Q");
-    sPort.write("q");
     sPort.write("c");
     sPort.write("C");
     sPort.write("V");
-    sPort.write("v");    
-    C1 = Math.random() * 300;
-    C2 = Math.random() * 300;
-    V1 = Math.random() * 5;
-    V2 = Math.random() * 5;
+    sPort.write("v");
+    Commands[0] = Commands[0].replace("\u0000\u0000", "");
+    //console.log(JSON.parse(Commands[0]));
+    for (var i = 0; i < 4; i++) {
+        var obj = JSON.parse(Commands[i]);
+        switch (obj.typ) {
+            case 'C':
+                C1 = obj.data;
+            break;
+            case 'c':
+                C2 = obj.data;
+            break;
+            case 'V':
+                V1 = obj.data;
+            break;
+            case 'v':
+                V2 = obj.data;
+            break;
+        }
+    }
     P1 = C1 * V1;
     P2 = C2 * V2;
     PD1.shift();
@@ -75,6 +95,7 @@ const server = app.listen(port, () => {
 });
 
 parser.on('data', (data) => {
-    console.log(data);
+    Commands.shift();
+    Commands.push(data);
 });
 
