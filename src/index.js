@@ -1,18 +1,20 @@
+const process = require('process');
 const express = require('express');
+const os = require('os');
 const path = require('path');
 const bodyParser = require('body-parser');
 const SerialPort = require('serialport');
 const Readline = require('@serialport/parser-readline');
 const { parse } = require('path');
 const { json } = require('body-parser');
-const sPort = new SerialPort('/dev/ttyACM1');
+const sPort = new SerialPort(process.argv[2], { baudRate: 9600});
 
 const app = express();
 const port = 3030;
 
 
-var LED1 = 1;
-var LED2 = 1;
+var LED1 = 0;
+var LED2 = 0;
 
 var C1 = 0;
 var C2 = 0;
@@ -26,9 +28,8 @@ var Commands = ['{"typ":"c","data":0.00}',
                 '{"typ":"C","data":0.00}',
                 '{"typ":"V","data":0.00}',
                 '{"typ":"v","data":0.00}'];
-var CommandsJSON;
 
-const parser = sPort.pipe(new Readline({ delimiter: '\r\n'}));
+const parser = sPort.pipe(new Readline({ delimiter: '\n'}));
 
 app.use(bodyParser.urlencoded({extended:false}));
 
@@ -44,10 +45,12 @@ app.post("/output", (req,res) => {
     if (req.body.data === 'Q') {
         LED1 ^= 1;
         res.json({state: LED1});
+        sPort.write("Q");
     }
     if (req.body.data === 'q') {
         LED2 ^= 1;
         res.json({state: LED2});
+        sPort.write("q");
     }
 });
 
@@ -56,25 +59,28 @@ app.post("/input", (req,res) => {
     sPort.write("C");
     sPort.write("V");
     sPort.write("v");
-    Commands[0] = Commands[0].replace("\u0000\u0000", "");
-    //console.log(JSON.parse(Commands[0]));
     for (var i = 0; i < 4; i++) {
-        var obj = JSON.parse(Commands[i]);
-        switch (obj.typ) {
-            case 'C':
-                C1 = obj.data;
-            break;
-            case 'c':
-                C2 = obj.data;
-            break;
-            case 'V':
-                V1 = obj.data;
-            break;
-            case 'v':
-                V2 = obj.data;
-            break;
+        try {
+            var obj = JSON.parse(Commands[i]);
+            switch (obj.typ) {
+                case 'C':
+                    C1 = LED1 * obj.data;
+                break;
+                case 'c':
+                    C2 = LED2 * obj.data;
+                break;
+                case 'V':
+                    V1 = LED1 * 10.0 * obj.data/1024.0;
+                break;
+                case 'v':
+                    V2 = LED2 * 10.0 * obj.data/1024.0;
+                break;
+            }
+        } catch(e) {
+            console.log("ERROR");
         }
     }
+    console.log("C1:",C1,"C2:",C2,"V1:",V1,"V2:",V2);
     P1 = C1 * V1;
     P2 = C2 * V2;
     PD1.shift();
@@ -91,11 +97,14 @@ app.post("/input", (req,res) => {
 app.use(express.static(path.join(__dirname,'/public')));
 
 const server = app.listen(port, () => {
-    console.log("Listo");  
+    console.log("Ready");
+    console.log("Serial port at:", process.argv[2]);
+    console.log("Listening at: https://" + os.networkInterfaces().wlp3s0[0].address + ":" + port);
 });
 
 parser.on('data', (data) => {
-    Commands.shift();
-    Commands.push(data);
+    if (data[8] !== 'q' && data [8] !== 'Q') {
+        Commands.shift();
+        Commands.push(data);
+    }
 });
-
